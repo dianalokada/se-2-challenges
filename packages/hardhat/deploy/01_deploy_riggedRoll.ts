@@ -17,14 +17,14 @@ const deployRiggedRoll: DeployFunction = async function (hre: HardhatRuntimeEnvi
     autoMine: true,
   });
 
-  const riggedRoll: RiggedRoll = await ethers.getContract("RiggedRoll", deployer);
+//   const riggedRoll: RiggedRoll = await ethers.getContract("RiggedRoll", deployer);
 
-  // Please replace the text "Your Address" with your own address.
-  // try {
-  //   await riggedRoll.transferOwnership("Your Address");
-  // } catch (err) {
-  //   console.log(err);
-  // }
+//   // Please replace the text "Your Address" with your own address.
+//   try {
+//     await riggedRoll.transferOwnership("0x6A1a956e2C58298D1d4df38647e790925b0431e1");
+//   } catch (err) {
+//     console.log(err);
+//   }
 };
 
 export default deployRiggedRoll;
