@@ -8,6 +8,24 @@ import { Balloons, DEX } from "../typechain-types";
 describe("🚩 Challenge 4: ⚖️ 🪙 DEX", () => {
   // this.timeout(45000);
 
+  // tokenToEth
+  // const transactionObject = {
+  //   value: "", // msg.value
+  //   data: "0x12348270000000000000000000000000009"
+  // };
+
+  // // ethToToken
+  // const transactionObject = {
+  //   value: "10", // msg.value
+  //   data: "0x345678"
+  // };
+
+  /**
+   *
+   * function approve(uint256 amount) - approve(10)
+   *
+   */
+
   let dexContract: DEX;
   let balloonsContract: Balloons;
   let deployer: HardhatEthersSigner;
