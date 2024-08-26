@@ -83,7 +83,7 @@ contract DEX {
 		//check and prevent liquidity being added if the contract already has liquidity
 		require(totalLiquidity == 0, "contract already has liquidity");
 		//What should the value of totalLiquidity be, how do we access the balance that our contract has and assign the variable a value
-		totalLiquidity == address(this).balance;
+		totalLiquidity = address(this).balance;
 		//How would we assign our address the liquidity we just provided? How much liquidity have we provided? The totalLiquidity? Just half? Three quarters?
 		liquidity[msg.sender] = totalLiquidity;
 		//take care of the tokens init() is receiving. How do we transfer the tokens from the sender (us) to this contract address? 
@@ -228,7 +228,7 @@ contract DEX {
 	//?? what is what and why
 	emit LiquidityProvided(msg.sender, liquidityMinted, msg.value, tokenDeposit);
 	//What do we return?
-	return tokensDeposited;
+	return tokenDeposit;
 
 	}
 
