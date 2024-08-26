@@ -89,7 +89,6 @@ contract DEX {
 		//take care of the tokens init() is receiving. How do we transfer the tokens from the sender (us) to this contract address? 
 		//How do we make sure the transaction reverts if the sender did not have as many tokens as they wanted to send?
 		require(token.transferFrom(msg.sender, address(this), tokens), "hey you don't have that many tokens to send");
-		//?? why do i have to return smth here?
 		return totalLiquidity;
 	}
 
@@ -133,9 +132,9 @@ contract DEX {
 	function ethToToken() public payable returns (uint256 tokenOutput) {
 		//How would we make sure the value being swapped for balloons is greater than 0?
 	require(msg.value > 0, "the value should be more than 0");
-		//?? Is xReserves ETH or $BAL tokens? Use a variable name that best describes which one it is. When we call this function, it will already have the value we sent it in it's liquidity. How can we make sure we are using the balance of the contract before any ETH was sent to it?
+		// Is xReserves ETH or $BAL tokens? Use a variable name that best describes which one it is. When we call this function, it will already have the value we sent it in it's liquidity. How can we make sure we are using the balance of the contract before any ETH was sent to it?
 	uint256 ethReserve = address(this).balance - msg.value;
-		//?? For yReserves we will also want to create a new more descriptive variable name. How do we find the other asset balance this address has?
+		//For yReserves we will also want to create a new more descriptive variable name. How do we find the other asset balance this address has?
 	uint256 token_reserve = token.balanceOf(address(this)); 
 		//Now that we have all our arguments, how do we call price() and store the returned value in a new variable? What kind of name would best describe this variable?
 		tokenOutput = price(msg.value, ethReserve, token_reserve);
@@ -164,7 +163,7 @@ contract DEX {
 		//For yReserves we will also want to create a new and more descriptive variable name. How do we find the other asset balance this address has?
 		//Now that we have all our arguments, how do we call price() and store the returned value in a new variable?
 		ethOutput = price(tokenInput, token_reserve, address(this).balance);
-		//?? After getting how much ETH the sender should receive, how do we transfer the ETH to the sender?
+		//After getting how much ETH the sender should receive, how do we transfer the ETH to the sender?
         require(token.transferFrom(msg.sender, address(this), tokenInput), "tokenToEth(): reverted swap.");
 		(bool sent, ) = msg.sender.call{ value: ethOutput }("");
 		require(sent, "tokenToEth: revert in transferring eth to you!");
@@ -203,7 +202,6 @@ contract DEX {
 		//What are we calculating again? Oh yeah, for the amount of ETH the user is depositing, we want them to also deposit a proportional amount of tokens. Let's make a reusable equation where we can swap out a value and get an output of the ETH and $BAL the user will be depositing, named tokenDeposit and liquidityMinted.
 
 		//How do we calculate how many tokens the user needs to deposit? You multiply the value the user sends through by reserves of the units we want as an output. Then we divide by ethReserve and add 1 to the result.
-		//?? why do i have to declare it first whats is the difference. also why didnt i have to do it for liquidityMinted?
 		uint256 tokenDeposit;
 		tokenDeposit = (msg.value * token_reserve / ethReserve) + 1;
 		//Now for liquidityMinted use the same equation but replace tokenReserve with totalLiquidity, so that we are multiplying in the numerator by the units we want.
@@ -215,7 +213,6 @@ contract DEX {
 	//How do we update totalLiquidity?
 	totalLiquidity += liquidityMinted;
 	//The user already deposited their ETH, but they still have to deposit their tokens. How do we require a token transfer from them?
-	//?? i dont get the syntax of this require. why there is no "blablabla"
 	require(token.transferFrom(msg.sender, address(this), tokenDeposit));
 	//We just completed something important, which event should we emit?
 	/**
@@ -225,7 +222,6 @@ contract DEX {
 		uint256 ethInput,
 		uint256 tokensInput
 	); */
-	//?? what is what and why
 	emit LiquidityProvided(msg.sender, liquidityMinted, msg.value, tokenDeposit);
 	//What do we return?
 	return tokenDeposit;
@@ -243,7 +239,6 @@ contract DEX {
 	) public returns (uint256 eth_amount, uint256 token_amount) {
 		//Part 1: Getting Reserves
 		// How can we verify that a user is withdrawing an amount of liquidity that they actually have?
-		//?? so who gets these errors from require statement and how and where
 	require(liquidity[msg.sender] >= amount, "not enough liqudity to withdraw");
 		//Just like the deposit() function we need both assets. How much ETH does our DEX have? Remember, this function is not payable, so we don't have to subtract anything.
 		uint256 ethReserve = address(this).balance;
@@ -252,7 +247,6 @@ contract DEX {
 		//Part 2: Performing Calculations
 		//We need to calculate how much of each asset our user is going withdraw, call them ethWithdrawn and tokenAmount. The equation is: amount * reserveOfDesiredUnits / totalLiquidity
 		//How do we get ethWithdrawn?
-		//?? why do i have to declare it first ??
 		uint256 ethWithdrawn;
 		ethWithdrawn = amount * ethReserve / totalLiquidity;
 		//How do we get tokenOutput?
@@ -263,7 +257,6 @@ contract DEX {
 		//The DEX also lost liquidity, how should we update totalLiquidity?
 		totalLiquidity -= amount;
 		//How do you pay the user the value of ethWithdrawn?
-		// ?? ugh
 		(bool sent, ) = payable(msg.sender).call{ value: ethWithdrawn }("");
 		require(sent, "withdraw wasnt successful");
 		//How do we give them their tokens?
@@ -276,7 +269,6 @@ contract DEX {
 		uint256 tokensOutput,
 		uint256 ethOutput
 	); */
-	//?? i dont understand this again
 		emit LiquidityRemoved(msg.sender, amount, tokenAmount, ethWithdrawn);
 		//Last, what are we returning?
 		return (ethWithdrawn, tokenAmount);
