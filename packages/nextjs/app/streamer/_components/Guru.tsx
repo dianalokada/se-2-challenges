@@ -3,6 +3,7 @@ import { CashOutVoucherButton } from "./CashOutVoucherButton";
 import { Address as AddressType, encodePacked, formatEther, keccak256, parseEther, toBytes, verifyMessage } from "viem";
 import { Address } from "~~/components/scaffold-eth";
 import { useDeployedContractInfo, useWatchBalance } from "~~/hooks/scaffold-eth";
+import { ethers } from 'ethers';
 
 export const STREAM_ETH_VALUE = "0.5";
 export const ETH_PER_CHARACTER = "0.01";
@@ -76,6 +77,33 @@ export const Guru: FC<GuruProps> = ({ challenged, closed, opened, writable }) =>
        *  and then use verifyMessage() to confirm that voucher signer was
        *  `clientAddress`. (If it wasn't, log some error message and return).
        */
+
+      // Recreate the packed message
+    const packedMessage = ethers.utils.solidityPack(
+      ["uint256", "address"],
+      [updatedBalance, serviceAddress]
+    );
+
+    // Hash the packed message
+    const hashedMessage = ethers.utils.keccak256(packedMessage);
+
+    // Arrayify the hashed message
+    const arrayifiedMessage = ethers.utils.arrayify(hashedMessage);
+
+    // Verify the signature
+    try {
+      const recoveredAddress = ethers.utils.verifyMessage(arrayifiedMessage, data.signature);
+      
+      if (recoveredAddress.toLowerCase() !== clientAddress.toLowerCase()) {
+        console.error("Signature verification failed: Signer does not match client address");
+        return;
+      }
+    } catch (error) {
+      console.error("Signature verification failed:", error);
+      return;
+    }
+
+
       const existingVoucher = vouchers[clientAddress];
 
       // update our stored voucher if this new one is more valuable
@@ -132,13 +160,13 @@ export const Guru: FC<GuruProps> = ({ challenged, closed, opened, writable }) =>
             </div>
 
             {/* Checkpoint 4: */}
-            {/* <CashOutVoucherButton
+            {<CashOutVoucherButton
               key={clientAddress}
               clientAddress={clientAddress}
               challenged={challenged}
               closed={closed}
               voucher={vouchers[clientAddress]}
-            /> */}
+            /> }
           </div>
         ))}
       </div>

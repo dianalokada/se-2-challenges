@@ -4,6 +4,14 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
+/**
+Main Quests
+🛣️ Build a packages/hardhat/contracts/Streamer.sol contract that collects ETH from numerous client addresses using a payable fundChannel() function and keeps track of balances.
+💵 Exchange paid services off-chain between the packages/hardhat/contracts/Streamer.sol contract owner (the Guru) and rube clients with funded channels. The Guru provides the service in exchange for signed vouchers which can later be redeemed on-chain.
+⏱ Create a Challenge mechanism with a timeout, so that rubes are protected from a Guru who goes offline while funds are locked on-chain (either by accident, or as a theft attempt).
+⁉ Consider some security / usability holes in the current design.
+ */
+
 contract Streamer is Ownable {
   event Opened(address, uint256);
   event Challenged(address);
@@ -13,7 +21,20 @@ contract Streamer is Ownable {
   mapping(address => uint256) balances;
   mapping(address => uint256) canCloseAt;
 
+  /**
+  In our case, the service provider is a Guru who provides off-the-cuff wisdom to each client Rube through a one-way chat box. Each character of text that is delivered is expected to be compensated with a payment of 0.01 ETH.
+
+  Rubes seeking wisdom will use a payable fundChannel() function, which will update this mapping with the supplied balance.
+  mapping (address => uint256) balances;
+   */
   function fundChannel() public payable {
+    //reverts if msg.sender already has a running channel 
+    require(balances[msg.sender] == 0, "Channel already funded");
+    //updates the balances mapping with the eth received in the function call
+    balances[msg.sender] += msg.value;
+    //emits an Opened event
+    emit Opened(msg.sender, msg.value);
+  }
     /*
       Checkpoint 2: fund a channel
 
@@ -22,7 +43,6 @@ contract Streamer is Ownable {
       - updates the balances mapping with the eth received in the function call
       - emits an Opened event
     */
-  }
 
   function timeLeft(address channel) public view returns (uint256) {
     if (canCloseAt[channel] == 0 || canCloseAt[channel] < block.timestamp) {
@@ -59,7 +79,21 @@ contract Streamer is Ownable {
           - adjust the channel balance, and pay the Guru(Contract owner). Get the owner address with the `owner()` function.
           - emit the Withdrawn event
     */
-  }
+
+    // Recover the signer's address using ecrecover
+    address signer = ecrecover(prefixedHashed, voucher.v, voucher.r, voucher.s);
+    // Check that the signer has a running channel with sufficient balance
+    require(balances[signer] > voucher.updatedBalance, "Insufficient balance");
+    // Calculate the payout
+    uint256 payout = balances[signer] - voucher.updatedBalance;    
+    // Update the channel balance
+    balances[signer] = voucher.updatedBalance;
+    // Send the payout to the Guru (contract owner)
+    (bool success, ) = owner().call{value: payout}("");
+    require(success, "Transfer to owner failed");
+    // Emit the Withdrawn event
+    emit Withdrawn(signer, payout);  
+    }
 
   /*
     Checkpoint 5a: Challenge the channel
@@ -69,6 +103,14 @@ contract Streamer is Ownable {
     - updates canCloseAt[msg.sender] to some future time
     - emits a Challenged event
   */
+  function challengeChannel() public {
+    //checks that msg.sender has an open channel
+    require(balances[msg.sender] > 0, "No open channel");
+    //updates canCloseAt[msg.sender] to some future time
+    canCloseAt[msg.sender] = block.timestamp + 30 seconds;
+    //emits a Challenged event
+    emit Challenged(msg.sender);  
+  }
 
   /*
     Checkpoint 5b: Close the channel
@@ -79,6 +121,20 @@ contract Streamer is Ownable {
     - sends the channel's remaining funds to msg.sender, and sets the balance to 0
     - emits the Closed event
   */
+
+  function defundChannel() public {
+    //checks that msg.sender has a closing channel
+    require(canCloseAt[msg.sender] > 0, "Channel not challenged");
+    //checks that the current time is later than the closing time
+    require(block.timestamp > canCloseAt[msg.sender], "Challenge period not over");
+    //sends the channel's remaining funds to msg.sender, and sets the balance to 0
+    uint256 amount = balances[msg.sender];
+    balances[msg.sender] = 0;
+    (bool success, ) = msg.sender.call{value: amount}("");
+    require(success, "Transfer failed");
+    //emits the Closed event
+    emit Closed(msg.sender);
+  }
 
   struct Voucher {
     uint256 updatedBalance;

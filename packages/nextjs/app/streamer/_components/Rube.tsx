@@ -139,7 +139,8 @@ export const Rube: FC<RubeProps> = ({ challenged, closed, writable }) => {
           </div>
 
           {/* Checkpoint 5: challenge & closure */}
-          {/* <div className="flex flex-col items-center pb-6">
+          {
+           <div className="flex flex-col items-center pb-6">
             <button
               disabled={challenged.includes(userAddress)}
               className="btn btn-primary"
@@ -189,7 +190,8 @@ export const Rube: FC<RubeProps> = ({ challenged, closed, writable }) => {
             >
               Close and withdraw funds
             </button>
-          </div> */}
+          </div> 
+          }
         </div>
       ) : userAddress && closed.includes(userAddress) ? (
         <div className="text-lg">

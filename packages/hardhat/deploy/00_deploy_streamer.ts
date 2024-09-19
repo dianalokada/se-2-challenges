@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-// import { Streamer } from "../typechain-types";
+import { Streamer } from "../typechain-types";
 
 /**
  * Deploys a contract named "Streamer" using the deployer account and
@@ -34,17 +34,17 @@ const deployStreamer: DeployFunction = async function (hre: HardhatRuntimeEnviro
   });
 
   // // *Checkpoint 1*
-  // // Get the deployed contract
-  // const streamer: Streamer = await hre.ethers.getContract("Streamer", deployer);
+  // Get the deployed contract
+  const streamer: Streamer = await hre.ethers.getContract("Streamer", deployer);
 
-  // // Transfer ownership to your front end address
-  // console.log("\n 🤹  Sending ownership to frontend address...\n");
-  // const ownerTx = await streamer.transferOwnership("** YOUR FRONTEND ADDRESS **");
-  // console.log("\n       confirming...\n");
-  // const ownershipResult = await ownerTx.wait();
-  // if (ownershipResult) {
-  //   console.log("       ✅ ownership transferred successfully!\n");
-  // }
+  // Transfer ownership to your front end address
+  console.log("\n 🤹  Sending ownership to frontend address...\n");
+  const ownerTx = await streamer.transferOwnership("** YOUR FRONTEND ADDRESS **");
+  console.log("\n       confirming...\n");
+  const ownershipResult = await ownerTx.wait();
+  if (ownershipResult) {
+    console.log("✅ ownership transferred successfully!\n");
+  }
 };
 
 export default deployStreamer;
